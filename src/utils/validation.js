@@ -1,4 +1,5 @@
 const validator = require("validator");
+const ConnectionRequest = require("../models/connectionRequest");
 
 const validateSignupData = (req,res) => {
     const {firstName, lastName, emailId, password} = req.body;
@@ -18,4 +19,32 @@ const validateEditProfileData = (req,res)=>{
     const isAllowed = Object.keys(req.body).every(field=>allowedEditFields.includes(field));
     return isAllowed;
 }
-module.exports = {validateSignupData,validateEditProfileData};
+
+const validateSendRequestData = (req,res)=>{
+    const allowedEditFields = ["ignored","interested"];
+    const isAllowed = allowedEditFields.includes(req);
+    return isAllowed;
+}
+
+const checkExistingConnectionRequests = async (fromUserId,toUserId) => {
+    const request = await ConnectionRequest.findOne({
+        $or:[
+            {fromUserId, toUserId},
+            {fromUserId:toUserId,toUserId:fromUserId},
+        ]
+    });
+    return request;
+}
+
+const checkToUserId = async (toUserId) => {
+    const toUser = await User.findById(toUserId);
+    return toUser;
+}
+
+module.exports = {
+    validateSignupData,
+    validateEditProfileData,
+    validateSendRequestData,
+    checkExistingConnectionRequests,
+    checkToUserId,
+};
